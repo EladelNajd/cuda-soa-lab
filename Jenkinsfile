@@ -1,43 +1,29 @@
 pipeline {
     agent any
 
-
     stages {
-
-        stage('GPU Sanity Test') {
+        stage('Checkout') {
             steps {
-                echo 'Installing required dependencies for cuda_test'
-                // TODO: write here
-                echo 'Running CUDA sanity check...'
-                // TODO: write here
+                git branch: 'main', url: 'https://github.com/EladelNajd/cuda-soa-lab.git'
             }
         }
 
+        stage('Test CUDA') {
+            steps {
+                sh 'python3 test_cuda_kernel.py'
+            }
+        }
 
         stage('Build Docker Image') {
             steps {
-                // TODO: write here
-                echo "🐳 Building Docker image with GPU support..."
+                sh 'docker build -t gpu-service .'
             }
         }
 
-        stage('Deploy Container') {
+        stage('Deploy') {
             steps {
-                echo "🚀 Deploying Docker container..."
-                // TODO: write here
+                sh 'docker run --gpus all -d -p 5000:5000 gpu-service'
             }
-        }
-    }
-
-    post {
-        success {
-            echo "🎉 Deployment completed successfully!"
-        }
-        failure {
-            echo "💥 Deployment failed. Check logs for errors."
-        }
-        always {
-            echo "🧾 Pipeline finished."
         }
     }
 }
